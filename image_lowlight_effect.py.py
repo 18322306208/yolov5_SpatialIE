@@ -17,7 +17,7 @@ folder_path_out = ""
 image_files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
 
 
-# Loop through each image
+# Iterate over each image file for processing.
 for image_file in image_files:
     # Load Image
     img = cv2.imread(os.path.join(folder_path, image_file), cv2.IMREAD_COLOR)

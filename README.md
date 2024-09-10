@@ -44,7 +44,15 @@ pip install -r requirements.txt
 >>> test.txt
 ## Training
 ```python
-python train.py --data bottle_foggy.yaml --cfg yolov5s.yaml --weights '' --epochs 300 --device 0
+python train.py --data bottle_foggy.yaml --cfg yolov5s_SpatialIE.yaml --weights '' --epochs 300 --device 0
+```
+## Test
+```python
+python val.py --data bottle_foggy.yaml --weights weights/best.pt --img 640 
+```
+## Detect
+```python
+python detect.py --source data_detect_foggy --weights weights/best.pt --img 640 
 ```
 
 

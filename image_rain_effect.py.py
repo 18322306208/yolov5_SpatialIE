@@ -2,34 +2,26 @@ import os
 import cv2
 import numpy as np
 
-# 文件夹路径
-folder_path = "D:\dataset/trash_data/rain\images"
-output_folder = "D:\dataset/trash_data/rain\images_corrected"
+
+folder_path = ""
+output_folder = ""
 
 
 
 def get_noise(img, value=10):
-    '''
-    #生成噪声图像
-    #>>> 输入： img图像
-
-        value= 大小控制雨滴的多少
-    #>>> 返回图像大小的模糊噪声图像
-    '''
-
+    # Generating Noisy Images
     noise = np.random.uniform(0, 256, img.shape[0:2])
-    # 控制噪声水平，取浮点数，只保留最大的一部分作为噪声
+    # Control the noise level by taking a floating point number and keeping only the largest portion as noise
     v = value * 0.01
     noise[np.where(noise < (256 - v))] = 0
 
-    # 噪声做初次模糊
+    # Do noise initial blur
     k = np.array([[0, 0.1, 0],
                   [0.1, 8, 0.1],
                   [0, 0.1, 0]])
 
     noise = cv2.filter2D(noise, -1, k)
 
-    # 可以输出噪声看看
     '''cv2.imshow('img',noise)
     cv2.waitKey()
     cv2.destroyWindow('img')'''
@@ -37,30 +29,19 @@ def get_noise(img, value=10):
 
 
 def rain_blur(noise, length=10, angle=0, w=1):
-    '''
-    将噪声加上运动模糊,模仿雨滴
+    # Add motion blur to the noise to mimic raindrops.
 
-    >>>输入
-    noise：输入噪声图，shape = img.shape[0:2]
-    length: 对角矩阵大小，表示雨滴的长度
-    angle： 倾斜的角度，逆时针为正
-    w:      雨滴大小
-
-    >>>输出带模糊的噪声
-
-    '''
-
-    # 这里由于对角阵自带45度的倾斜，逆时针为正，所以加了-45度的误差，保证开始为正
+   
     trans = cv2.getRotationMatrix2D((length / 2, length / 2), angle - 45, 1 - length / 100.0)
-    dig = np.diag(np.ones(length))  # 生成对焦矩阵
-    k = cv2.warpAffine(dig, trans, (length, length))  # 生成模糊核
-    k = cv2.GaussianBlur(k, (w, w), 0)  # 高斯模糊这个旋转后的对角核，使得雨有宽度
+    dig = np.diag(np.ones(length))  # Generate focus matrix
+    k = cv2.warpAffine(dig, trans, (length, length))  # Generate Blur Kernel
+    k = cv2.GaussianBlur(k, (w, w), 0)  # Apply Gaussian blur to the rotated diagonal kernel to give the rain width.
 
-    # k = k / length                         #是否归一化
+    # k = k / length                        
 
-    blurred = cv2.filter2D(noise, -1, k)  # 用刚刚得到的旋转后的核，进行滤波
+    blurred = cv2.filter2D(noise, -1, k)  # Use the rotated kernel obtained earlier to perform filtering.
 
-    # 转换到0-255区间
+    # Convert to the 0-255 range.
     cv2.normalize(blurred, blurred, 0, 255, cv2.NORM_MINMAX)
     blurred = np.array(blurred, dtype=np.uint8)
     '''
@@ -72,22 +53,20 @@ def rain_blur(noise, length=10, angle=0, w=1):
 
 
 def alpha_rain(rain, img, beta=0.8):
-    # 输入雨滴噪声和图像
+   
     # beta = 0.8   #results weight
-    # 显示下雨效果
-
     # expand dimensin
-    # 将二维雨噪声扩张为三维单通道
-    # 并与图像合成在一起形成带有alpha通道的4通道图像
+    # Expand the 2D rain noise to a 3D single channel.
+    # Combine it with the image to form a 4-channel image with an alpha channel.
     rain = np.expand_dims(rain, 2)
     rain_effect = np.concatenate((img, rain), axis=2)  # add alpha channel
 
-    rain_result = img.copy()  # 拷贝一个掩膜
-    rain = np.array(rain, dtype=np.float32)  # 数据类型变为浮点数，后面要叠加，防止数组越界要用32位
+    rain_result = img.copy()  # Copy a mask.
+    rain = np.array(rain, dtype=np.float32)  # 
     rain_result[:, :, 0] = rain_result[:, :, 0] * (255 - rain[:, :, 0]) / 255.0 + beta * rain[:, :, 0]
     rain_result[:, :, 1] = rain_result[:, :, 1] * (255 - rain[:, :, 0]) / 255 + beta * rain[:, :, 0]
     rain_result[:, :, 2] = rain_result[:, :, 2] * (255 - rain[:, :, 0]) / 255 + beta * rain[:, :, 0]
-    # 对每个通道先保留雨滴噪声图对应的黑色（透明）部分，再叠加白色的雨滴噪声部分（有比例因子）
+   
 
 
 
@@ -99,16 +78,14 @@ def alpha_rain(rain, img, beta=0.8):
 
 
 def add_rain(rain, img, alpha=0.9):
-    # 输入雨滴噪声和图像
-    # alpha：原图比例因子
-    # 显示下雨效果
+    
 
     # chage rain into  3-dimenis
-    # 将二维rain噪声扩张为与原图相同的三通道图像
+    # Expand the 2D rain noise into a 3-channel image matching the original image.
     rain = np.expand_dims(rain, 2)
     rain = np.repeat(rain, 3, 2)
 
-    # 加权合成新图
+    # Perform weighted composition of the new image.
     result = cv2.addWeighted(img, alpha, rain, 1 - alpha, 1)
     #cv2.imshow('rain_effct', result)
     #cv2.waitKey()
@@ -119,9 +96,9 @@ def add_rain(rain, img, alpha=0.9):
 
 image_files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
 
-# 循环处理每个图片文件
+# Iterate over each image file for processing.
 for image_file in image_files:
-    # 加载图像
+    # Load the image.
     img = cv2.imread(os.path.join(folder_path, image_file), cv2.IMREAD_COLOR)
 
     noise = get_noise(img, value=500)
@@ -130,8 +107,8 @@ for image_file in image_files:
     angle = np.random.randint(-50, 51)
 
     rain = rain_blur(noise, length, angle, w=5)
-    #rain_result = alpha_rain(rain, img, beta=0.6)  # 方法一，透明度赋值
-    rain_result = add_rain(rain, img)  # 方法二,加权后有玻璃外的效果
+    #rain_result = alpha_rain(rain, img, beta=0.6)  # Method 1: Assign transparency values.
+    rain_result = add_rain(rain, img)  # Method 2: After weighting, achieve an effect as if viewed from outside a glass.
 
     output_file = os.path.join(output_folder, image_file)
     cv2.imwrite(output_file, rain_result)

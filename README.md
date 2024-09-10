@@ -41,5 +41,25 @@ pip install -r requirements.txt
 
 >>> val.txt
 
->>> test.txt    
+>>> test.txt
+## Training
+```python
+python train.py --data bottle_foggy.yaml --cfg yolov5s.yaml --weights '' --epochs 300 --device 0
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

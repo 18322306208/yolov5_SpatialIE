@@ -20,18 +20,26 @@ pip install -r requirements.txt
 > yolov5_SpatialIE
 >> datasets
 >>> Annotations
->>>> 000001.xml  
->>> Images
+>>>> 000001.xml
+   
+>>> Images  
 >>>> 000001.jpg
->>> ImageSets
->>>> train.txt
->>>> val.txt
->>>> test.txt  
->>> labels
->>>> 000001.txt 
->>> hyps  
->>> bottle_foggy.yaml  
->>> train.txt  
->>> val.txt  
->>> test.txt  
+
+>>> ImageSets  
+>>>> train.txt  
+>>>> val.txt  
+>>>> test.txt
+  
+>>> labels  
+>>>> 000001.txt
+
+>>> hyps
+
+>>> bottle_foggy.yaml
+
+>>> train.txt
+
+>>> val.txt
+
+>>> test.txt    
 
